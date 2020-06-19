@@ -20,6 +20,6 @@ Proje Firebase Realtime Database ile oluşturulmuştur. Veri ağacı şu şekild
 
 # 4. Flutter (smart-home)
 
-Flutter projesini düzgün bir biçimde build edebilmek için kendi oluşturduğunuz Firebase projesine mobil uygulama ekleyip "google-services.json" dosyasını projenin /android/app klasörüne koymanız gerekmektedir.
+Flutter projesini düzgün bir biçimde build edebilmek için kendi oluşturduğunuz Firebase projesine mobil uygulama ekleyip "google-services.json" dosyasını Flutter projesinin /android/app klasörüne koymanız gerekmektedir.
 
 ![Uygulama ekran görüntüsü](https://i.imgur.com/3G8cy5T.png)
