@@ -1,4 +1,4 @@
-# smarthome
+# Akıllı Evim
 
 ## Dependencies
 firebase_database: ^3.1.3  
