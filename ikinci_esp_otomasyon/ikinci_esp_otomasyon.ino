@@ -2,7 +2,7 @@
 #include <FirebaseESP32.h>
 #include <FastLED.h>
 
-// FIREBASE AND WIFI DEFINITIOUNS
+// FIREBASE AND WIFI DEFINITIONS
 #define FIREBASE_HOST "xxxxxxxxxx" // Put your Firebase Host name
 #define FIREBASE_AUTH "xxxxxxxxxx" // Put your Firebase secret key
 
