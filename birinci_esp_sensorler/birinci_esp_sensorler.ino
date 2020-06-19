@@ -5,7 +5,6 @@
 #include <dht11.h>
 
 // FIREBASE AND WIFI DEFINITIONS
-
 #define FIREBASE_HOST "xxxxxxxxxx" // Put your Firebase Host name
 #define FIREBASE_AUTH "xxxxxxxxxx" // Put your Firebase secret key
 
@@ -36,7 +35,6 @@ dht11 DHT11;
 // The path which sensor values stored
 String path = "/SensorValues";
 
-
 void setup() {
   // Start the Serial Monitor
   Serial.begin(115200);
@@ -61,11 +59,9 @@ void setup() {
   //tiny, small, medium, large and unlimited.
   //Size and its write timeout e.g. tiny (1s), small (10s), medium (30s) and large (60s).
   Firebase.setwriteSizeLimit(firebaseData, "tiny");
-
 }
 
 void loop() {
-  
   if (Firebase.setInt(firebaseData, path + "/Stream/tempValue", getTemp()))
     {
       Serial.println("PASSED");
@@ -137,8 +133,7 @@ void loop() {
       Serial.println("------------------------------------");
       Serial.println();
     }
-
-
+  
     delay(200);
 }
 
