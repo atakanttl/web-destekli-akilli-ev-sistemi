@@ -1,6 +1,6 @@
 # Web Destekli Akıllı Ev Sistemi
 
-Bu projenin genel kapsamı şu şekildedir; veri tabanına sensörlerden aldığı veriyi aktaran birden fazla mikrodenetleyici ve veri tabanından veri alan ve veritabanına veri gönderen bir mobil uygulama arayüzü. Mikrodenetleyiciler, üzerlerinde bulunan sensörler aracılığı ile ortam verilerini toplayarak veri tabanına aktarmakta, aynı zamanda mobil uygulamadan veri tabanına gönderilen bilgiler doğrultusunda otomasyon işlemi de yapmaktadır. Veri tabanına aktarılan veriler kullanıcıya mobil uygulama arayüzü ile sunulmaktadır. Bu verilerden herhangi birinin sahip olduğu değer, normal aralıkların dışındaysa kullanıcı bu durum hakkında mobil uygulama bildirimleri aracılığıyla bilgilendirilir.
+Bu projenin genel kapsamı şu şekildedir; veri tabanına sensörlerden aldığı veriyi aktaran birden fazla mikrodenetleyici ve veri tabanından veri alan ve veri tabanına veri gönderen bir mobil uygulama arayüzü. Mikrodenetleyiciler, üzerlerinde bulunan sensörler aracılığı ile ortam verilerini toplayarak veri tabanına aktarmakta, aynı zamanda mobil uygulamadan veri tabanına gönderilen bilgiler doğrultusunda otomasyon işlemi de yapmaktadır. Veri tabanına aktarılan veriler kullanıcıya mobil uygulama arayüzü ile sunulmaktadır. Bu verilerden herhangi birinin sahip olduğu değer, normal aralıkların dışındaysa kullanıcı bu durum hakkında mobil uygulama bildirimleri aracılığıyla bilgilendirilir.
 
 Gerçekleştirilen projeyi yeniden elde etmek için gereken 4 adım şu şekildedir:
 
