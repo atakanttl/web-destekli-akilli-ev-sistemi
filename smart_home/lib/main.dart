@@ -5,34 +5,47 @@ import 'home.dart';
 void main() => runApp(SmartHomeApp());
 
 class SmartHomeApp extends StatefulWidget {
+  // Başlatıcı boilerplate kodları
   const SmartHomeApp({Key key}) : super(key: key);
   @override
   _SmartHomeAppState createState() => _SmartHomeAppState();
 }
 
+// Sekme kontrolcüsü TickerProvider gerektirdiği için SingleTickerProviderStateMixin kullanıldı
 class _SmartHomeAppState extends State<SmartHomeApp>
     with SingleTickerProviderStateMixin {
+  // Sekme kontrolü için oluşturulan obje
   TabController _tabController;
+  // İki sayfanın yönlendirilmesi
   final _kTabPages = [
     HomePage(),
     TasksPage(),
   ];
+  // Oluşturulan sekmelerin ikon, renk ve isimleri
   static const _kTabs = <Tab>[
     Tab(
-      icon: Icon(Icons.data_usage),
+      icon: Icon(
+        Icons.data_usage,
+        color: Color(0xff000000),
+      ),
       child: Text(
         'Sensörler',
         style: TextStyle(
           fontWeight: FontWeight.bold,
+          color: Color(0xff000000),
         ),
       ),
     ),
     Tab(
-      icon: Icon(Icons.dashboard),
+      icon: Icon(
+        Icons.dashboard,
+        color: Color(0xff000000),
+      ),
       child: Text(
         'Görevler',
         style: TextStyle(
           fontWeight: FontWeight.bold,
+          color: Color(0xff000000),
         ),
       ),
     ),
@@ -40,16 +53,23 @@ class _SmartHomeAppState extends State<SmartHomeApp>
 
   @override
   void initState() {
+    // Metot override edilirken mutlaka super.metot() yazılmalı
     super.initState();
+    // Sayfa sayısına göre sekme eklenip TickerProvider içeren classımız vsynce eklendi
     _tabController = TabController(length: _kTabPages.length, vsync: this);
   }
 
+  // Hafıza sızıntısı oluşmaması için dispose metodu yeniden yazılıp sekme kontrolcüsü eklendi
   @override
   void dispose() {
     super.dispose();
     _tabController.dispose();
   }
 
+  /*
+  Build metodu içinde AppBar, Gövde (TabBarView) ve Sekmeler (bottomNavigationBar) bulunuyor.
+  Gövdenin içinde sayfaların yönlendirildiği obje (_kTabPages) ve bunu yöneten kontrolcü bulunuyor.
+  */
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -57,16 +77,17 @@ class _SmartHomeAppState extends State<SmartHomeApp>
       theme: ThemeData(fontFamily: 'Montserrat'),
       home: SafeArea(
         child: Scaffold(
-          backgroundColor: Colors.grey[900],
+          backgroundColor: Color(0xfff5f5f5),
           appBar: AppBar(
             title: Text(
               'Akıllı Evim',
               style: TextStyle(
                 fontWeight: FontWeight.bold,
+                color: Color(0xff000000),
               ),
             ),
             centerTitle: true,
-            backgroundColor: Colors.grey[850],
+            backgroundColor: Color(0xfff5f5f5),
             elevation: 0,
           ),
           body: TabBarView(
@@ -74,7 +95,7 @@ class _SmartHomeAppState extends State<SmartHomeApp>
             controller: _tabController,
           ),
           bottomNavigationBar: Material(
-            color: Color(0xdd263238),
+            color: Color(0xffb0bec5),
             child: TabBar(
               tabs: _kTabs,
               controller: _tabController,

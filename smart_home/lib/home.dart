@@ -10,10 +10,10 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  FlutterLocalNotificationsPlugin
-      flutterLocalNotificationsPlugin; // Notification plugin definition
+  // Lokal bildirimler için obje oluşturuldu
+  FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin;
 
-  // Sensor Page definitions
+  // Ana sayfada yer alan tüm değişkenler
   int temperatureValue = 0;
   DatabaseReference _temperatureRef;
   StreamSubscription<Event> _temperatureSubscription;
@@ -31,78 +31,105 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    // Local Notification initialization
+    // Lokal bildirimlerin başlatılması
     flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+    // Android ve iOS yapılandırılması (iOS kullanılmıyor fakat initialization içinde bulunması zorunlu)
     var android = AndroidInitializationSettings('app_icon');
     var iOS = IOSInitializationSettings();
     var initSettings = InitializationSettings(android, iOS);
     flutterLocalNotificationsPlugin.initialize(initSettings);
 
-    // Temperature initial values & subscription
+    // Sıcaklık başlangıç değerleri & abonelik
+    // Firebase referans yoluyla sıcaklık referansını bağla
     _temperatureRef = FirebaseDatabase.instance
         .reference()
         .child('/SensorValues/Stream/tempValue');
+    // Sıcaklık referansını Firebase referansıyla senkronize et
     _temperatureRef.keepSynced(true);
+    // Referans değeri değiştiğinde durum (State) güncelle
     _temperatureSubscription = _temperatureRef.onValue.listen((Event event) {
       setState(() {
         _error = null;
+        // Snapshot değeri null ise sıcaklık değerini sıfırla,
+        // null değilse snapshot değerini sıcaklık değerine eşitle.
         temperatureValue = event.snapshot.value ?? 0;
       });
     }, onError: (Object o) {
+      // Herhangi bir Firebase hatası durumunda error objesini güncelle.
       final DatabaseError error = o;
       setState(() {
         _error = error;
       });
     });
 
-    // Gas initial values & subscription
+    // Gaz başlangıç değerleri & abonelik
+    // Firebase referans yoluyla gaz referansını bağla
     _gasRef = FirebaseDatabase.instance
         .reference()
         .child('/SensorValues/Stream/gasValue');
+    // Gaz referansını Firebase referansıyla senkronize et
     _gasRef.keepSynced(true);
+    // Referans değeri değiştiğinde durum (State) güncelle
     _gasSubscription = _gasRef.onValue.listen((Event event) {
       setState(() {
         _error = null;
+        // Snapshot değeri null ise gaz değerini sıfırla,
+        // null değilse snapshot değerini gaz değerine eşitle.
         gasValue = event.snapshot.value ?? 0;
-        if (gasValue > 1600) showNotification('Gaz', 0); // Sends notification
+        // Gaz değeri 1600'ün üzerindeyse bildirim gönder
+        if (gasValue > 1600) showNotification('Gaz', 0);
       });
     }, onError: (Object o) {
+      // Herhangi bir Firebase hatası durumunda error objesini güncelle.
       final DatabaseError error = o;
       setState(() {
         _error = error;
       });
     });
 
-    // Flame initial values & subscription
+    // Alev başlangıç değerleri & abonelik
+    // Firebase referans yoluyla alev referansını bağla
     _flameRef = FirebaseDatabase.instance
         .reference()
         .child('/SensorValues/Stream/flameValue');
+    // Alev referansını Firebase referansıyla senkronize et
     _flameRef.keepSynced(true);
+    // Referans değeri değiştiğinde durum (State) güncelle
     _flameSubscription = _flameRef.onValue.listen((Event event) {
       setState(() {
         _error = null;
+        // Snapshot değeri null ise alev değerini sıfırla,
+        // null değilse snapshot değerini alev değerine eşitle.
         flameValue = event.snapshot.value ?? 0;
+        // Alev değeri 1000'in altındaysa bildirim gönder
         if (flameValue < 1000)
           showNotification('Alev', 1); // Sends notification
       });
     }, onError: (Object o) {
+      // Herhangi bir Firebase hatası durumunda error objesini güncelle.
       final DatabaseError error = o;
       setState(() {
         _error = error;
       });
     });
 
-    // Humidity initial values & subscription
+    // Nem başlangıç değerleri & abonelik
+    // Firebase referans yoluyla nem referansını bağla
     _humidityRef = FirebaseDatabase.instance
         .reference()
         .child('/SensorValues/Stream/humidityValue');
+    // Nem referansını Firebase referansıyla senkronize et
     _humidityRef.keepSynced(true);
+    // Referans değeri değiştiğinde durum (State) güncelle
     _humiditySubscription = _humidityRef.onValue.listen((Event event) {
       setState(() {
         _error = _error;
+        // Snapshot değeri null ise gaz değerini sıfırla,
+        // null değilse snapshot değerini gaz değerine eşitle.
         humidityValue = event.snapshot.value ?? 0;
       });
     }, onError: (Object o) {
+      // Herhangi bir Firebase hatası durumunda error objesini güncelle.
       final DatabaseError error = o;
       setState(() {
         _error = error;
@@ -110,6 +137,7 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+  // Belirlenen sensöre göre bildirim ayarla
   Future onSelectNotification(String payload) {
     debugPrint("payload : $payload");
     showDialog(
@@ -121,6 +149,11 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  /*
+  Belirlenen sensöre göre ('Gaz') veya ('Alev') uyarı oluştur,
+  ID'leri birbirinden farklı olursa hepsi aynı anda görülebilir.
+  Asenkron fonksiyon olduğu için program akışına müdahale etmez.
+  */
   showNotification(String warningSensor, int id) async {
     var android = AndroidNotificationDetails(
         'channel id', 'Sensor notifications', 'CHANNEL DESCRIPTION',
@@ -134,6 +167,8 @@ class _HomePageState extends State<HomePage> {
         payload: '');
   }
 
+  // Oluşturulan abonelikler sayfa değiştiğinde atılır,
+  // böylece hafıza sızıntısından korunulur.
   @override
   void dispose() {
     super.dispose();
@@ -143,6 +178,10 @@ class _HomePageState extends State<HomePage> {
     _humiditySubscription.cancel();
   }
 
+  /*
+  Build metodu içinde 4 adet Grid oluşturuldu,
+  İkonlar, sensör değerleri ve basit mantık işlemleri yapıldı.
+  */
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -150,7 +189,7 @@ class _HomePageState extends State<HomePage> {
       theme: ThemeData(fontFamily: 'Montserrat'),
       home: SafeArea(
         child: Scaffold(
-            backgroundColor: Color(0xff212121),
+            backgroundColor: Color(0xfff5f5f5),
             body: GridView.count(
               padding: EdgeInsets.symmetric(vertical: 20.0, horizontal: 5.0),
               crossAxisSpacing: 6,
@@ -177,6 +216,7 @@ class _HomePageState extends State<HomePage> {
                             'Sıcaklık',
                             style: TextStyle(
                                 color: Colors.white,
+                                fontWeight: FontWeight.bold,
                                 letterSpacing: 2,
                                 fontSize: 18),
                           ),
@@ -215,6 +255,7 @@ class _HomePageState extends State<HomePage> {
                             'Gaz',
                             style: TextStyle(
                                 color: Colors.white,
+                                fontWeight: FontWeight.bold,
                                 letterSpacing: 2,
                                 fontSize: 18),
                           ),
@@ -222,6 +263,8 @@ class _HomePageState extends State<HomePage> {
                       ),
                       SizedBox(height: 40),
                       Text(
+                        // Gaz değeri 1600'ün altındaysa normal olduğunu belirt,
+                        // değilse anormal durumu belirt.
                         gasValue < 1600 ? 'Normal' : 'Gaz kaçağı olabilir',
                         textAlign: TextAlign.center,
                         style: TextStyle(
@@ -263,6 +306,7 @@ class _HomePageState extends State<HomePage> {
                             'Alev',
                             style: TextStyle(
                                 color: Colors.white,
+                                fontWeight: FontWeight.bold,
                                 letterSpacing: 2,
                                 fontSize: 18),
                           ),
@@ -270,6 +314,8 @@ class _HomePageState extends State<HomePage> {
                       ),
                       SizedBox(height: 40),
                       Text(
+                        // Alev değeri 1000'in altındaysa anormal durumu belirt,
+                        // değilse normal durumu belirt.
                         flameValue < 1000 ? 'ALEV ALGILANDI' : 'Normal',
                         textAlign: TextAlign.center,
                         style: TextStyle(
@@ -302,6 +348,7 @@ class _HomePageState extends State<HomePage> {
                             'Nem',
                             style: TextStyle(
                                 color: Colors.white,
+                                fontWeight: FontWeight.bold,
                                 letterSpacing: 2,
                                 fontSize: 18),
                           ),
