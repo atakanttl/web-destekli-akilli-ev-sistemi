@@ -22,4 +22,4 @@ Proje Firebase Realtime Database ile oluşturulmuştur. Veri ağacı şu şekild
 
 Flutter projesini düzgün bir biçimde build edebilmek için kendi oluşturduğunuz Firebase projesine mobil uygulama ekleyip "google-services.json" dosyasını Flutter projesinin /android/app klasörüne koymanız gerekmekte ve "pubspec.yaml" dosyasındaki dependency'leri doğrulamanız gerekmektedir.
 
-![Uygulama ekran görüntüsü](https://i.imgur.com/3G8cy5T.png)
+![Uygulama ekran görüntüsü](https://i.imgur.com/Rw7MruR.png)
