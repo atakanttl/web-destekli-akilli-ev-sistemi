@@ -2,19 +2,20 @@
 #include <FirebaseESP32.h>
 #include <FastLED.h>
 
-// FIREBASE AND WIFI DEFINITIONS
-#define FIREBASE_HOST "xxxxxxxxxx" // Put your Firebase Host name
-#define FIREBASE_AUTH "xxxxxxxxxx" // Put your Firebase secret key
+// FIREBASE VE WIFI TANIMLARI
+#define FIREBASE_HOST "xxxxxxxxxx" // Buraya Firebase Host adı gelecek
+#define FIREBASE_AUTH "xxxxxxxxxx" // Buraya Firebase gizli anahtarı gelecek
 
-#define WIFI_SSID "xxxxxxxxxxx" // Put your WiFi SSID
-#define WIFI_PASSWORD "xxxxxxxxxx" // Put your WiFi password
+#define WIFI_SSID "xxxxxxxxxxx" // Buraya WiFi SSID (isim) gelecek
+#define WIFI_PASSWORD "xxxxxxxxxx" // Buraya WiFi şifresi gelecek
 
-// Define FirebaseESP32 data object
+// FirebaseESP32 instance'ı tanımlandı
 FirebaseData firebaseData;
 
+// Firebase'de oluşturulan yol
 String path = "/SensorValues";
 
-// LED & 'FastLED.h' DEFINITIONS
+// LED & 'FastLED.h' KÜTÜPHANESİ TANIMLARI
 #define LED_PIN     33
 #define NUM_LEDS    16
 #define BRIGHTNESS  255
@@ -30,11 +31,11 @@ uint32_t rgbValue;
 int brightnessValue = 255;
 bool LEDSwitch = false;
 
-// SMARTPLUG (RELAY) DEFINITIONS
+// AKILLI PRİZ (RÖLE) TANIMLARI
 int sPlugPin = 32;
 bool plugSwitch = false;
 
-// DOOR SENSOR DEFINITIONS
+// KAPI SENSÖRÜ TANIMLARI
 int dSensorPin = 34;
 int dSensorVal;
 bool doorSensor;
@@ -42,9 +43,11 @@ bool doorSensor;
 //////////////////////////////////////////////////////////
 
 void setup(){
-  // Start the Serial Monitor
+  // Seri monitör 115200 baud rate ile başlatıldı
   Serial.begin(115200);
   delay( 3000 );
+  
+  // WiFi ağına bağlanmaya çalış
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
   Serial.print("Connecting to Wi-Fi");
   while (WiFi.status() != WL_CONNECTED)
@@ -52,77 +55,90 @@ void setup(){
       Serial.print(".");
       delay(300);
   }
-  
   Serial.println("Connection successful.");
-   
+
+  // Firebase'i başlat
   Firebase.begin(FIREBASE_HOST, FIREBASE_AUTH);
+  // İnternet bağlantısının kesilmesi durumunda yeniden bağlanmayı deneyip döngüyü baştan başlat
   Firebase.reconnectWiFi(true);
  
-  //Set database read timeout to 1 minute (max 15 minutes)
+  // Firebase veri okuması zaman aşımını 1 dakika olarak belirle
   Firebase.setReadTimeout(firebaseData, 1000 * 60);
-  //tiny, small, medium, large and unlimited.
-  //Size and its write timeout e.g. tiny (1s), small (10s), medium (30s) and large (60s).
+  // Firebase veri yazma zaman aşımını 1 saniye olarak belirle (tiny)
   Firebase.setwriteSizeLimit(firebaseData, "tiny");
-  
+
+  // LED tipi, pini, renk sırası, LED matrisi ve sayısına göre LED'i başlat
   FastLED.addLeds<LED_TYPE, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection( TypicalLEDStrip );
-  
-  pinMode(sPlugPin, OUTPUT);          // Smart plug pin set as output
-  pinMode(dSensorPin, INPUT_PULLUP);  // Door sensor pin set as input with pull up resistance
+
+  // Akıllı priz pinini çıkış olarak belirle
+  pinMode(sPlugPin, OUTPUT);
+  // Kapı sensörü pinini pull-up direnciyle giriş olarak belirle
+  pinMode(dSensorPin, INPUT_PULLUP); 
 }
 
 //////////////////////////////////////////////////////////
 
 void loop() {
-   // Get Smart Plug Data From Firebase
+  // Firebase.getXXX fonksiyonları önce belirlenen yola göre Firebase'den değişken alır, işlem başarılıysa true, başarısızsa false döndürür
+  // Akıllı priz değerini Firebase'den al
   if(Firebase.getBool(firebaseData, path + "/Automation/plugSwitch"))
   {
-     plugSwitch = (bool)firebaseData.boolData(); 
+    // plugSwitch değerini Firebase'deki akıllı prize göre değiştir
+    plugSwitch = (bool)firebaseData.boolData(); 
   }
-  // Go to Smart Plug Function
+  // Akıllı priz fonksiyonunu plugSwitch değeriyle çağır
   sPlug_func(plugSwitch);
 
-  // Send Door Sensor Value to Firebase
+  // Kapı sensörü değerini oku
   dSensorVal = digitalRead(dSensorPin);
+  // Kapı sensörünü boolean değeriyle güncelle
   sDoor_func(dSensorVal);
+  // Firebase.setXXX fonksiyonları önce belirlenen yola göre değişkeni Firebase'e aktarır, işlem başarılıysa true, başarısızsa false döndürür
+  // Kapı sensörü değerini Firebase'e aktar
   if(Firebase.setBool(firebaseData, path + "/Automation/doorSensor", dSensorVal));
-
-  // Get LED Switch Data From Firebase
+  
+  // LED durum değerini Firebase'den al
   if(Firebase.getBool(firebaseData, path + "/Automation/lightSwitch"))
   {
      LEDSwitch = (bool)firebaseData.boolData(); 
   }
 
-  // Get LED Brightness Data From Firebase
+  // LED parlaklık değerini Firebase'den al
   if(Firebase.getInt(firebaseData, path + "/Automation/lightBrightness"))
   {
     brightnessValue = (int)firebaseData.intData();
   }
 
-  // Get LED Color Data From Firebase
+  // LED renk değerini Firebase'den al
   if(Firebase.getDouble(firebaseData, path + "/Automation/lightColor"))
   {
       rgbValue = (uint32_t)firebaseData.doubleData();
   }
 
-  // Transform LED color data to hexadecimal from decimal
+  // Alınan integer renk değerini kırmızı, yeşil ve mavi olarak parçalara ayır
   r = (int)(rgbValue & 0x00ff0000) >> 16;
   g = (int)(rgbValue & 0x0000ff00) >> 8;
   b = (int)(rgbValue & 0x000000ff);
 
-  // Go to LED Function
+  // LED'in durumuna göre LED paletini değiştir
   changePalette(LEDSwitch);
-
+  
   static uint8_t startIndex = 0;
   startIndex = startIndex + 1; 
+
+  // İndise ve parlaklığa göre LED'leri doldur
   fillLED(startIndex, brightnessValue);
+  // LED'leri yak
   FastLED.show(); 
 }
 
 //////////////////////////////////////////////////////////
 
-// Smart Plug Function
+// Akıllı priz fonksiyonu
+// Firebase'den alınan priz durumu röleye iletilir.
 void sPlug_func(bool plugSwitch)
 {
+  // Gelen veri true ise röleyi çalıştır, false ise röleyi durdur
   if(plugSwitch == true)
   {
     digitalWrite(sPlugPin,HIGH);
@@ -135,9 +151,11 @@ void sPlug_func(bool plugSwitch)
 
 //////////////////////////////////////////////////////////
 
-// Door Sensor Function
+// Kapı sensörü fonksiyonu
+// Pinden okunan değer LOW ise kapı açık; HIGH ise kapı kapalıdır
 void sDoor_func(int dSensorVal)
 {
+  // Sensörden alınan veriye göre kapı sensörü değerini bool cinsinden değiştir
   if(dSensorVal == LOW)
   {
     doorSensor = true;
@@ -150,17 +168,20 @@ void sDoor_func(int dSensorVal)
 
 //////////////////////////////////////////////////////////
 
-// Sets up color and on-off state of the led
+// LED'in paletini ve açık-kapalı durumunu ayarlayan fonksiyon
+// Firebase'den alınan durum bilgisine göre LED yakılır, renk bilgisine göre palet değiştirilir
 void changePalette(bool LEDSwitch)
 { 
   if (LEDSwitch == true)          
   {
     fill_solid( currentPalette, 16, CRGB::Black);
 
+    // Ayrılan R, G, B değerleri palete yazılır
     for(int i=0; i<16; i++){
       currentPalette[i] = CRGB(r,g,b);
     }   
   }
+  // LED durumu kapalı olarak ayarlanmışsa palet (0,0,0) olarak ayarlanır, bu da LED'i sönük duruma geçirir
   else if(LEDSwitch == false)
   {
     for(int i=0; i<16; i++){
@@ -169,7 +190,8 @@ void changePalette(bool LEDSwitch)
   }
 }
 
-// Light up the led based on palette
+// Palete göre LED'i dolduran fonksiyon
+// changePalette fonksiyonundan alınan palet verisi, Firebase'den alınan parlaklık bilgisiyle beraber donanıma iletilir
 void fillLED( uint8_t colorIndex, uint8_t brigthness)
 { 
     for(int i=0; i<NUM_LEDS; i++) {
