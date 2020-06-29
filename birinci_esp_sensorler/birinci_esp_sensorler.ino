@@ -4,44 +4,49 @@
 #include <DallasTemperature.h>
 #include <dht11.h>
 
-// FIREBASE AND WIFI DEFINITIONS
-#define FIREBASE_HOST "xxxxxxxxxx" // Put your Firebase Host name
-#define FIREBASE_AUTH "xxxxxxxxxx" // Put your Firebase secret key
+// FIREBASE VE WIFI TANIMLARI
+#define FIREBASE_HOST "xxxxxxxxxx" // Buraya Firebase Host adı gelecek
+#define FIREBASE_AUTH "xxxxxxxxxx" // Buraya Firebase gizli anahtarı gelecek
 
-#define WIFI_SSID "xxxxxxxxxxx" // Put your WiFi SSID
-#define WIFI_PASSWORD "xxxxxxxxxx" // Put your WiFi password
+#define WIFI_SSID "xxxxxxxxxxx" // Buraya WiFi SSID (isim) gelecek
+#define WIFI_PASSWORD "xxxxxxxxxx" // Buraya WiFi şifresi gelecek
 
-// Define FirebaseESP32 data object
+// FirebaseESP32 instance'ı tanımlandı
 FirebaseData firebaseData;
 
-// TEMPERATURE SENSOR DEFINITIONS
-// GPIO where the DS18B20 is connected to
+// SICAKLIK SENSÖRÜ TANIMLARI
+// DS18B20'nin bağlı olduğu GPIO pini
 const int oneWireBus = 32;     
-// Setup a oneWire instance to communicate with any OneWire devices
+// Tek kablo haberleşmesi sağlamak için oneWire instance'ı oluşturuldu
 OneWire oneWire(oneWireBus);
-// Pass oneWire reference to Dallas Temperature sensor 
+// oneWire referansı Dallas Temperature sensörüne geçirildi
 DallasTemperature sensors(&oneWire);
 
-// FLAME SENSOR DEFINITIONS
-const int flameSensorPin = 35; // Sensor analog interface
+// ALEV SENSÖRÜ TANIMLARI
+// Alev sensörünün bağlı olduğu GPIO pini
+const int flameSensorPin = 35;
 
-// GAS SENSOR DEFINITIONS
+// GAZ SENSÖRÜ TANIMLARI
+// Gaz sensörünün bağlı olduğu GPIO pini
 const int gasSensorPin = 34;
 
-// HUMIDITY SENSOR DEFINITIONS
+// NEM SENSÖRÜ TANIMLARI
+// Nem sensörünün bağlı olduğu GPIO pini
 const int humiditySensorPin = 33;
+// Nem sensöründen veri alabilmek için dht11 instance'ı tanımlandı
 dht11 DHT11;
 
-// The path which sensor values stored
+// Firebase'de oluşturulan yol
 String path = "/SensorValues";
 
 void setup() {
-  // Start the Serial Monitor
+  // Seri monitör 115200 baud rate ile başlatıldı
   Serial.begin(115200);
-  // Start the DS18B20 sensor
+  // DS18B20 sensörü başlatıldı
   sensors.begin();
   pinMode(flameSensorPin, OUTPUT);
 
+  // WiFi ağına bağlanmaya çalış
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
   Serial.print("Connecting to Wi-Fi");
   while (WiFi.status() != WL_CONNECTED)
@@ -50,20 +55,24 @@ void setup() {
     delay(300);
   }
   Serial.println("Connection successful.");
-  
+
+  // Firebase'i başlat
   Firebase.begin(FIREBASE_HOST, FIREBASE_AUTH);
+  // İnternet bağlantısının kesilmesi durumunda yeniden bağlanmayı deneyip döngüyü baştan başlat
   Firebase.reconnectWiFi(true);
 
-  //Set database read timeout to 1 minute (max 15 minutes)
+  // Firebase veri okuması zaman aşımını 1 dakika olarak belirle
   Firebase.setReadTimeout(firebaseData, 1000 * 60);
-  //tiny, small, medium, large and unlimited.
-  //Size and its write timeout e.g. tiny (1s), small (10s), medium (30s) and large (60s).
+  // Firebase veri yazma zaman aşımını 1 saniye olarak belirle (tiny)
   Firebase.setwriteSizeLimit(firebaseData, "tiny");
 }
 
 void loop() {
+  // Firebase.setXXX fonksiyonları önce belirlenen yola göre değişkeni Firebase'e aktarır, işlem başarılıysa true, başarısızsa false döndürür
+  // Sıcaklık değerini Firebase'e aktar
   if (Firebase.setInt(firebaseData, path + "/Stream/tempValue", getTemp()))
     {
+      // İşlem başarılıysa gönderilen veri yolunu, veri tipini ve verinin kendisini görüntüle
       Serial.println("PASSED");
       Serial.println("PATH: " + firebaseData.dataPath());
       Serial.println("TYPE: " + firebaseData.dataType());
@@ -74,14 +83,17 @@ void loop() {
     }
     else
     {
+      // İşlem başarısızsa hatanın sebebini görüntüle
       Serial.println("FAILED");
       Serial.println("REASON: " + firebaseData.errorReason());
       Serial.println("------------------------------------");
       Serial.println();
     }
 
+  // Gaz değerini Firebase'e aktar
   if (Firebase.setInt(firebaseData, path + "/Stream/gasValue", getGas()))
     {
+      // İşlem başarılıysa gönderilen veri yolunu, veri tipini ve verinin kendisini görüntüle
       Serial.println("PASSED");
       Serial.println("PATH: " + firebaseData.dataPath());
       Serial.println("TYPE: " + firebaseData.dataType());
@@ -92,14 +104,17 @@ void loop() {
     }
     else
     {
+      // İşlem başarısızsa hatanın sebebini görüntüle
       Serial.println("FAILED");
       Serial.println("REASON: " + firebaseData.errorReason());
       Serial.println("------------------------------------");
       Serial.println();
     }
 
+  // Alev değerini Firebase'e aktar
   if (Firebase.setInt(firebaseData, path + "/Stream/flameValue", getFlame()))
     {
+      // İşlem başarılıysa gönderilen veri yolunu, veri tipini ve verinin kendisini görüntüle
       Serial.println("PASSED");
       Serial.println("PATH: " + firebaseData.dataPath());
       Serial.println("TYPE: " + firebaseData.dataType());
@@ -110,14 +125,17 @@ void loop() {
     }
     else
     {
+      // İşlem başarısızsa hatanın sebebini görüntüle
       Serial.println("FAILED");
       Serial.println("REASON: " + firebaseData.errorReason());
       Serial.println("------------------------------------");
       Serial.println();
     }
 
-    if (Firebase.setInt(firebaseData, path + "/Stream/humidityValue", getHumidity()))
+  // Nem değerini Firebase'e aktar
+  if (Firebase.setInt(firebaseData, path + "/Stream/humidityValue", getHumidity()))
     {
+      // İşlem başarılıysa gönderilen veri yolunu, veri tipini ve verinin kendisini görüntüle
       Serial.println("PASSED");
       Serial.println("PATH: " + firebaseData.dataPath());
       Serial.println("TYPE: " + firebaseData.dataType());
@@ -128,52 +146,68 @@ void loop() {
     }
     else
     {
+      // İşlem başarısızsa hatanın sebebini görüntüle
       Serial.println("FAILED");
       Serial.println("REASON: " + firebaseData.errorReason());
       Serial.println("------------------------------------");
       Serial.println();
     }
-  
-    delay(200);
+
+  // Sensörleri yormamak için 200 mili saniyelik bir gecikme oluşturuldu
+  delay(200);
 }
 
-// Get Temperature Value Function
+// Sıcaklık değeri alma fonksiyonu
 int getTemp() {
+  // Sıcaklık sensöründen veri iste
   sensors.requestTemperatures(); 
-  int temperatureC = sensors.getTempCByIndex(0); // Get the temperature value in Celsius
+  // Sıcaklık değerini Celsius olarak al
+  int temperatureC = sensors.getTempCByIndex(0); 
   return temperatureC;
 }
 
-// Get Flame Value Function
+// Alev değeri alma fonksiyonu
 int getFlame() {
-  int flame_value = analogRead(flameSensorPin); // Read the analog interface
+  // Sıcaklık sensörünü analog olarak oku
+  int flame_value = analogRead(flameSensorPin); 
   return flame_value;
 }
 
-// Get Gas Value Function
+// Gaz değeri alma fonksiyonu
 int getGas() {
-  float sensorValue = analogRead(gasSensorPin);     // Read from gasSensorPin
-  float sensorVolt = sensorValue * (5.0 / 4095.0);  // Convert analog value to voltage value
-  float rsAir = ((50.0 / sensorVolt) - 10.0);       // Air resistance
-  float r0 = 6.0;                                   // Calculated r0 from fresh air based on the formula (r0 = rsAir / 4.4)
+  // Gaz sensörünü analog olarak oku
+  float sensorValue = analogRead(gasSensorPin);    
+  // Analog değeri voltaj değerine dönüştür
+  float sensorVolt = sensorValue * (5.0 / 4095.0); 
+  // Hava direncini hesapla
+  float rsAir = ((50.0 / sensorVolt) - 10.0);   
+  // R0 direnci temiz havaya bırakılıp (r0 = rsAir / 4.4) formülüyle önceden hesaplandı
+  float r0 = 6.0;
 
-  float ppmLog = (log10(rsAir / r0) - 1.133) / (-0.318);  // Parts per minute calculation (logarithmic)
-  int ppm = (int) pow(10, ppmLog);                        // Parts per minute calculation
+  // PPM değerini logaritmik olarak hesapla
+  float ppmLog = (log10(rsAir / r0) - 1.133) / (-0.318);  
+  // PPM değerini dönüştür
+  int ppm = (int) pow(10, ppmLog);                       
 
+  // PPM değeri 10000den büyükse 10000 değerini döndür, değilse ppm değerini döndür
   if (ppm > 10000)
     return 10000;
   else
     return ppm;
 }
 
-// Get Humidity Value Function
+// Nem değeri alma fonksiyonu
 int getHumidity() {
-  int chk = DHT11.read(humiditySensorPin);  // Read from humiditySensorPin
-  float humid = (float) DHT11.humidity;     // Get humidity data 
+  // Nem sensörünü dijital olarak oku
+  int chk = DHT11.read(humiditySensorPin); 
+  // Nem değeri float olarak okunuyor
+  float humid = (float) DHT11.humidity;
+  // Float değerini integer olarak değiştir
   int humidity = (int) humid;
   return humidity;
 }
 
+// Seri monitörde görüntülemek üzere int ve float değerleri için Firebase verisi görüntüleme fonksiyonu
 void printResult(FirebaseData &data){
   if (data.dataType() == "int")
     Serial.println(data.intData());
