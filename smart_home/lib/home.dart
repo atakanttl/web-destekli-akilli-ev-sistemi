@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:weather_icons/weather_icons.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'sensors.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -14,19 +15,10 @@ class _HomePageState extends State<HomePage> {
   FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin;
 
   // Ana sayfada yer alan tüm değişkenler
-  int temperatureValue = 0;
-  DatabaseReference _temperatureRef;
-  StreamSubscription<Event> _temperatureSubscription;
-  int gasValue = 0;
-  DatabaseReference _gasRef;
-  StreamSubscription<Event> _gasSubscription;
-  int flameValue = 4096;
-  DatabaseReference _flameRef;
-  StreamSubscription<Event> _flameSubscription;
-  int humidityValue = 0;
-  DatabaseReference _humidityRef;
-  StreamSubscription<Event> _humiditySubscription;
-  DatabaseError _error;
+  Sensors temperature = Sensors(0);
+  Sensors gas = Sensors(0);
+  Sensors flame = Sensors(4096);
+  Sensors humidity = Sensors(0);
 
   @override
   void initState() {
@@ -39,100 +31,49 @@ class _HomePageState extends State<HomePage> {
     var initSettings = InitializationSettings(android, iOS);
     flutterLocalNotificationsPlugin.initialize(initSettings);
 
-    // Sıcaklık başlangıç değerleri & abonelik
-    // Firebase referans yoluyla sıcaklık referansını bağla
-    _temperatureRef = FirebaseDatabase.instance
-        .reference()
-        .child('/SensorValues/Stream/tempValue');
-    // Sıcaklık referansını Firebase referansıyla senkronize et
-    _temperatureRef.keepSynced(true);
-    // Referans değeri değiştiğinde durum (State) güncelle
-    _temperatureSubscription = _temperatureRef.onValue.listen((Event event) {
+    // Sensör aboneliklerinin başlatılması
+    temperature.initSensor('/SensorValues/Stream/tempValue');
+    temperature.subscription = temperature.ref.onValue.listen((event) {
       setState(() {
-        _error = null;
-        // Snapshot değeri null ise sıcaklık değerini sıfırla,
-        // null değilse snapshot değerini sıcaklık değerine eşitle.
-        temperatureValue = event.snapshot.value ?? 0;
+        temperature.linkValue(event);
       });
     }, onError: (Object o) {
-      // Herhangi bir Firebase hatası durumunda error objesini güncelle.
-      final DatabaseError error = o;
       setState(() {
-        _error = error;
+        temperature.error = o;
+      });
+    });
+    gas.initSensor('/SensorValues/Stream/gasValue');
+    gas.subscription = gas.ref.onValue.listen((event) {
+      setState(() {
+        gas.linkValue(event);
+        if (gas.value > 1600) showNotification('Gaz', 0);
+      });
+    }, onError: (Object o) {
+      setState(() {
+        gas.error = o;
       });
     });
 
-    // Gaz başlangıç değerleri & abonelik
-    // Firebase referans yoluyla gaz referansını bağla
-    _gasRef = FirebaseDatabase.instance
-        .reference()
-        .child('/SensorValues/Stream/gasValue');
-    // Gaz referansını Firebase referansıyla senkronize et
-    _gasRef.keepSynced(true);
-    // Referans değeri değiştiğinde durum (State) güncelle
-    _gasSubscription = _gasRef.onValue.listen((Event event) {
+    flame.initSensor('/SensorValues/Stream/flameValue');
+    flame.subscription = flame.ref.onValue.listen((event) {
       setState(() {
-        _error = null;
-        // Snapshot değeri null ise gaz değerini sıfırla,
-        // null değilse snapshot değerini gaz değerine eşitle.
-        gasValue = event.snapshot.value ?? 0;
-        // Gaz değeri 1600'ün üzerindeyse bildirim gönder
-        if (gasValue > 1600) showNotification('Gaz', 0);
+        flame.linkValue(event);
+        if (flame.value < 1000) showNotification('Alev', 1);
       });
     }, onError: (Object o) {
-      // Herhangi bir Firebase hatası durumunda error objesini güncelle.
-      final DatabaseError error = o;
       setState(() {
-        _error = error;
+        flame.error = o;
       });
     });
 
-    // Alev başlangıç değerleri & abonelik
-    // Firebase referans yoluyla alev referansını bağla
-    _flameRef = FirebaseDatabase.instance
-        .reference()
-        .child('/SensorValues/Stream/flameValue');
-    // Alev referansını Firebase referansıyla senkronize et
-    _flameRef.keepSynced(true);
-    // Referans değeri değiştiğinde durum (State) güncelle
-    _flameSubscription = _flameRef.onValue.listen((Event event) {
+    humidity.initSensor('/SensorValues/Stream/humidityValue');
+    humidity.subscription = humidity.ref.onValue.listen((event) {
       setState(() {
-        _error = null;
-        // Snapshot değeri null ise alev değerini sıfırla,
-        // null değilse snapshot değerini alev değerine eşitle.
-        flameValue = event.snapshot.value ?? 0;
-        // Alev değeri 1000'in altındaysa bildirim gönder
-        if (flameValue < 1000)
-          showNotification('Alev', 1); // Sends notification
+        humidity.linkValue(event);
       });
     }, onError: (Object o) {
-      // Herhangi bir Firebase hatası durumunda error objesini güncelle.
-      final DatabaseError error = o;
       setState(() {
-        _error = error;
-      });
-    });
-
-    // Nem başlangıç değerleri & abonelik
-    // Firebase referans yoluyla nem referansını bağla
-    _humidityRef = FirebaseDatabase.instance
-        .reference()
-        .child('/SensorValues/Stream/humidityValue');
-    // Nem referansını Firebase referansıyla senkronize et
-    _humidityRef.keepSynced(true);
-    // Referans değeri değiştiğinde durum (State) güncelle
-    _humiditySubscription = _humidityRef.onValue.listen((Event event) {
-      setState(() {
-        _error = _error;
-        // Snapshot değeri null ise gaz değerini sıfırla,
-        // null değilse snapshot değerini gaz değerine eşitle.
-        humidityValue = event.snapshot.value ?? 0;
-      });
-    }, onError: (Object o) {
-      // Herhangi bir Firebase hatası durumunda error objesini güncelle.
-      final DatabaseError error = o;
-      setState(() {
-        _error = error;
+        humidity.error = o;
       });
     });
   }
@@ -172,10 +113,10 @@ class _HomePageState extends State<HomePage> {
   @override
   void dispose() {
     super.dispose();
-    _temperatureSubscription.cancel();
-    _gasSubscription.cancel();
-    _flameSubscription.cancel();
-    _humiditySubscription.cancel();
+    temperature.subscription.cancel();
+    gas.subscription.cancel();
+    flame.subscription.cancel();
+    humidity.subscription.cancel();
   }
 
   /*
@@ -224,7 +165,7 @@ class _HomePageState extends State<HomePage> {
                       ),
                       SizedBox(height: 40),
                       Text(
-                        '$temperatureValue \u2103',
+                        temperature.value.toString() + '\u2103',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                             color: Colors.white,
@@ -265,7 +206,7 @@ class _HomePageState extends State<HomePage> {
                       Text(
                         // Gaz değeri 1600'ün altındaysa normal olduğunu belirt,
                         // değilse anormal durumu belirt.
-                        gasValue < 1600 ? 'Normal' : 'Gaz kaçağı olabilir',
+                        gas.value < 1600 ? 'Normal' : 'Gaz kaçağı olabilir',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           color: Colors.white,
@@ -275,7 +216,7 @@ class _HomePageState extends State<HomePage> {
                         ),
                       ),
                       Text(
-                        '$gasValue ppm',
+                        gas.value.toString() + ' ppm',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                             color: Colors.white,
@@ -316,7 +257,7 @@ class _HomePageState extends State<HomePage> {
                       Text(
                         // Alev değeri 1000'in altındaysa anormal durumu belirt,
                         // değilse normal durumu belirt.
-                        flameValue < 1000 ? 'ALEV ALGILANDI' : 'Normal',
+                        flame.value < 1000 ? 'ALEV ALGILANDI' : 'Normal',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           color: Colors.white,
@@ -356,7 +297,7 @@ class _HomePageState extends State<HomePage> {
                       ),
                       SizedBox(height: 40),
                       Text(
-                        '$humidityValue%',
+                        humidity.value.toString() + '%',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           color: Colors.white,

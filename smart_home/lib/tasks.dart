@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
+import 'sensors.dart';
 
 class TasksPage extends StatefulWidget {
   @override
@@ -10,153 +11,68 @@ class TasksPage extends StatefulWidget {
 
 class _TasksPageState extends State<TasksPage> {
   // İkinci sayfada bulunan tüm değişkenler ve varsayılan ayarları
-  bool lightSwitchValue = false;
-  DatabaseReference _lightSwitchRef;
-  StreamSubscription<Event> _lightSwitchSubscription;
-
-  // Işığın varsayılan rengi beyaz olarak belirlendi.
-  int lightColorValue = 4294967295;
-  DatabaseReference _lightColorRef;
-  StreamSubscription<Event> _lightColorSubscription;
-
-  int lightBrightnessValue = 255;
-  DatabaseReference _lightBrightnessRef;
-  StreamSubscription<Event> _lightBrightnessSubscription;
-
-  bool plugSwitchValue = false;
-  DatabaseReference _plugSwitchRef;
-  StreamSubscription<Event> _plugSwitchSubscription;
-
-  bool doorSensorValue = false;
-  DatabaseReference _doorSensorRef;
-  StreamSubscription<Event> _doorSensorSubscription;
-
-  DatabaseError _error;
+  static const int whiteColor = 0xffffffff;
+  static const int maxBrightness = 0xff;
+  Sensors lightSwitch = Sensors(false);
+  Sensors lightColor = Sensors(whiteColor);
+  Sensors lightBrightness = Sensors(maxBrightness);
+  Sensors plugSwitch = Sensors(false);
+  Sensors door = Sensors(false);
 
   // Uygulamada görünen varsayılan renk, bu değer Firebase'den renk verisi alındığında güncelleniyor.
-  Color currentColor = Colors.limeAccent;
+  Color currentColor = Color(whiteColor);
   void changeColor(Color color) => setState(() => currentColor = color);
 
-  int currentBrightness = 255;
+  int currentBrightness = maxBrightness;
 
   @override
   void initState() {
     super.initState();
 
-    // Işık durumu başlangıç değerleri & abonelik
-    // Firebase referans yoluyla ışık durumu referansını bağla
-    _lightSwitchRef = FirebaseDatabase.instance
-        .reference()
-        .child('/SensorValues/Automation/lightSwitch');
-    // Işık durumu referansını Firebase referansıyla senkronize et
-    _lightSwitchRef.keepSynced(true);
-    // Referans değeri değiştiğinde durum (State) güncelle
-    _lightSwitchSubscription = _lightSwitchRef.onValue.listen((Event event) {
+    // Sensör aboneliklerinin başlatılması
+    lightSwitch.initSensor('/SensorValues/Automation/lightSwitch');
+    lightSwitch.subscription = lightSwitch.ref.onValue.listen((event) {
       setState(() {
-        _error = null;
-        // Snapshot değeri null ise ışık durumu değerini sıfırla,
-        // null değilse snapshot değerini ışık durumu değerine eşitle.
-        lightSwitchValue = event.snapshot.value ?? 0;
+        lightSwitch.linkValue(event);
       });
     }, onError: (Object o) {
-      // Herhangi bir Firebase hatası durumunda error objesini güncelle.
-      final DatabaseError error = o;
       setState(() {
-        _error = error;
+        lightSwitch.error = o;
       });
     });
-
-    // Işık rengi başlangıç değerleri & abonelik
-    // Firebase referans yoluyla ışık renginin referansını bağla
-    _lightColorRef = FirebaseDatabase.instance
-        .reference()
-        .child('/SensorValues/Automation/lightColor');
-    // Işık renginin referansını Firebase referansıyla senkronize et
-    _lightColorRef.keepSynced(true);
-    // Referans değeri değiştiğinde durum (State) güncelle
-    _lightColorSubscription = _lightColorRef.onValue.listen((Event event) {
+    lightColor.initSensor('/SensorValues/Automation/lightColor');
+    lightColor.subscription = lightColor.ref.onValue.listen((event) {
       setState(() {
-        _error = null;
-        // Snapshot değeri null ise ışık renginin değerini sıfırla,
-        // null değilse snapshot değerini ışık renginin değerine eşitle.
-        lightColorValue = event.snapshot.value ?? 0;
+        lightColor.linkValue(event);
       });
     }, onError: (Object o) {
-      // Herhangi bir Firebase hatası durumunda error objesini güncelle.
-      final DatabaseError error = o;
       setState(() {
-        _error = error;
+        lightColor.error = o;
       });
     });
-
-    // Işık parlaklığı başlangıç değerleri & abonelik
-    // Firebase referans yoluyla ışık parlaklığının referansını bağla
-    _lightBrightnessRef = FirebaseDatabase.instance
-        .reference()
-        .child('/SensorValues/Automation/lightBrightness');
-    // Işık parlaklığının referansını Firebase referansıyla senkronize et
-    _lightBrightnessRef.keepSynced(true);
-    // Referans değeri değiştiğinde durum (State) güncelle
-    _lightBrightnessSubscription =
-        _lightBrightnessRef.onValue.listen((Event event) {
+    lightBrightness.initSensor('/SensorValues/Automation/lightBrightness');
+    lightBrightness.subscription = lightBrightness.ref.onValue.listen((event) {
       setState(() {
-        _error = null;
-        // Snapshot değeri null ise ışık parlaklığının değerini sıfırla,
-        // null değilse snapshot değerini ışık parlaklığının değerine eşitle.
-        lightBrightnessValue = event.snapshot.value ?? 0;
+        lightBrightness.linkValue(event);
       });
     }, onError: (Object o) {
-      // Herhangi bir Firebase hatası durumunda error objesini güncelle.
-      final DatabaseError error = o;
-      setState(() {
-        _error = error;
-      });
+      lightBrightness.error = o;
     });
-
-    // Akıllı priz başlangıç değerleri & abonelik
-    // Firebase referans yoluyla akıllı priz referansını bağla
-    _plugSwitchRef = FirebaseDatabase.instance
-        .reference()
-        .child('/SensorValues/Automation/plugSwitch');
-    // Akıllı priz referansını Firebase referansıyla senkronize et
-    _plugSwitchRef.keepSynced(true);
-    // Referans değeri değiştiğinde durum (State) güncelle
-    _plugSwitchSubscription = _plugSwitchRef.onValue.listen((Event event) {
+    plugSwitch.initSensor('/SensorValues/Automation/plugSwitch');
+    plugSwitch.subscription = plugSwitch.ref.onValue.listen((event) {
       setState(() {
-        _error = null;
-        // Snapshot değeri null ise akıllı priz değerini sıfırla,
-        // null değilse snapshot değerini akıllı priz değerine eşitle.
-        plugSwitchValue = event.snapshot.value ?? 0;
+        plugSwitch.linkValue(event);
       });
     }, onError: (Object o) {
-      // Herhangi bir Firebase hatası durumunda error objesini güncelle.
-      final DatabaseError error = o;
-      setState(() {
-        _error = error;
-      });
+      plugSwitch.error = o;
     });
-
-    // Kapı sensörünün başlangıç değerleri & abonelik
-    // Firebase referans yoluyla kapı sensörünün referansını bağla
-    _doorSensorRef = FirebaseDatabase.instance
-        .reference()
-        .child('/SensorValues/Automation/doorSensor');
-    // Kapı sensörünün referansını Firebase referansıyla senkronize et
-    _doorSensorRef.keepSynced(true);
-    // Referans değeri değiştiğinde durum (State) güncelle
-    _doorSensorSubscription = _doorSensorRef.onValue.listen((Event event) {
+    door.initSensor('/SensorValues/Automation/doorSensor');
+    door.subscription = door.ref.onValue.listen((event) {
       setState(() {
-        _error = null;
-        // Snapshot değeri null ise kapı sensörünün değerini sıfırla,
-        // null değilse snapshot değerini kapı sensörünün değerine eşitle.
-        doorSensorValue = event.snapshot.value ?? 0;
+        door.linkValue(event);
       });
     }, onError: (Object o) {
-      // Herhangi bir Firebase hatası durumunda error objesini güncelle.
-      final DatabaseError error = o;
-      setState(() {
-        _error = error;
-      });
+      door.error = o;
     });
   }
 
@@ -212,11 +128,11 @@ class _TasksPageState extends State<TasksPage> {
   @override
   void dispose() {
     super.dispose();
-    _lightSwitchSubscription.cancel();
-    _lightColorSubscription.cancel();
-    _lightBrightnessSubscription.cancel();
-    _plugSwitchSubscription.cancel();
-    _doorSensorSubscription.cancel();
+    lightSwitch.subscription.cancel();
+    lightColor.subscription.cancel();
+    lightBrightness.subscription.cancel();
+    plugSwitch.subscription.cancel();
+    door.subscription.cancel();
   }
 
   /*
@@ -251,7 +167,7 @@ class _TasksPageState extends State<TasksPage> {
                         children: <Widget>[
                           Text(
                             // Işık switch'i true ise açık, false ise kapalı bilgisi ver
-                            lightSwitchValue == true
+                            lightSwitch.value == true
                                 ? 'Işık açık'
                                 : 'Işık kapalı',
                             style: TextStyle(
@@ -273,7 +189,7 @@ class _TasksPageState extends State<TasksPage> {
                                       backgroundColor: Color(0xfff5f5f5),
                                       content: SingleChildScrollView(
                                         child: SlidePicker(
-                                          pickerColor: Color(lightColorValue),
+                                          pickerColor: Color(lightColor.value),
                                           // Renk değiştiğinde changeColor fonksiyonunu çağır
                                           onColorChanged: changeColor,
                                           paletteType: PaletteType.rgb,
@@ -294,7 +210,7 @@ class _TasksPageState extends State<TasksPage> {
                                           child: Text('Gönder'),
                                           onPressed: () {
                                             // Gönder butonuna basıldığında Firebase'e ışık renk referansını gönder
-                                            _submitColor(_lightColorRef);
+                                            _submitColor(lightColor.ref);
                                             // Menüyü kapat
                                             Navigator.pop(context);
                                           },
@@ -305,17 +221,17 @@ class _TasksPageState extends State<TasksPage> {
                                   },
                                 );
                               },
-                              backgroundColor: Color(lightColorValue),
+                              backgroundColor: Color(lightColor.value),
                             ),
                           ),
                         ],
                       ),
                       trailing: Switch(
-                        value: lightSwitchValue,
+                        value: lightSwitch.value,
                         onChanged: (value) {
                           setState(() {
                             // Switch'e basıldığında durumu tersine çevirmek için setInverse fonksiyonunu çağır
-                            _setInverse(_lightSwitchRef);
+                            _setInverse(lightSwitch.ref);
                           });
                         },
                       ),
@@ -328,7 +244,7 @@ class _TasksPageState extends State<TasksPage> {
                       ),
                       title: Slider(
                         // Slider double değerler aldığı için önce ışık parlaklığını çeviriyoruz
-                        value: lightBrightnessValue.toDouble(),
+                        value: lightBrightness.value.toDouble(),
                         min: 0.0,
                         max: 255.0,
                         activeColor: Color(0xff37474f),
@@ -338,7 +254,7 @@ class _TasksPageState extends State<TasksPage> {
                             // double olan değeri yuvarlıyoruz.
                             currentBrightness = newBrightness.round();
                             // Parlaklık değerini Firebase'e gönderiyoruz.
-                            _submitBrightness(_lightBrightnessRef);
+                            _submitBrightness(lightBrightness.ref);
                           });
                         },
                       ),
@@ -354,7 +270,7 @@ class _TasksPageState extends State<TasksPage> {
                       Icon(Icons.power, color: Color(0xff000000), size: 28),
                   title: Text(
                     // Akıllı priz değeri true ise çalışıyor, false ise kapalı bilgisi yazdır.
-                    plugSwitchValue == true
+                    plugSwitch.value == true
                         ? 'Akıllı Priz çalışıyor'
                         : 'Akıllı Priz kapalı',
                     style: TextStyle(
@@ -365,11 +281,11 @@ class _TasksPageState extends State<TasksPage> {
                     ),
                   ),
                   trailing: Switch(
-                    value: plugSwitchValue,
+                    value: plugSwitch.value,
                     onChanged: (value) {
                       setState(() {
                         // Switch değerini tersine çevirmek için setInverse fonksiyonunu çağır.
-                        _setInverse(_plugSwitchRef);
+                        _setInverse(plugSwitch.ref);
                       });
                     },
                   ),
@@ -386,7 +302,7 @@ class _TasksPageState extends State<TasksPage> {
                   ),
                   title: Text(
                     // Kapı değeri true ise açık, false ise kapalı bilgisini yazdır.
-                    doorSensorValue == true ? 'Kapı açık' : 'Kapı kapalı',
+                    door.value == true ? 'Kapı açık' : 'Kapı kapalı',
                     style: TextStyle(
                       color: Color(0xff000000),
                       fontWeight: FontWeight.bold,
@@ -396,7 +312,7 @@ class _TasksPageState extends State<TasksPage> {
                   ),
                   trailing: Icon(Icons.brightness_1,
                       // İkonun rengini kapı açıksa yeşil, kapalıysa kırmızı olarak değiştir.
-                      color: doorSensorValue == true
+                      color: door.value == true
                           ? Color(0xdd2e7d32)
                           : Color(0xddc62828)),
                 ),
