@@ -137,180 +137,94 @@ class _HomePageState extends State<HomePage> {
               mainAxisSpacing: 6,
               crossAxisCount: 2,
               children: <Widget>[
-                Container(
-                  decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10),
-                      color: Color(0xddba68c8)),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: <Widget>[
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        children: <Widget>[
-                          BoxedIcon(
-                            WeatherIcons.hot,
-                            color: Colors.white,
-                            size: 28,
-                          ),
-                          Text(
-                            'Sıcaklık',
-                            style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: 2,
-                                fontSize: 18),
-                          ),
-                        ],
-                      ),
-                      SizedBox(height: 40),
-                      Text(
-                        temperature.value.toString() + '\u2103',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                            color: Colors.white,
-                            letterSpacing: 2,
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold),
-                      ),
-                    ],
-                  ),
+                Tile(
+                  sensorName: 'Sıcaklık',
+                  sensorIcon: WeatherIcons.hot,
+                  text: temperature.value.toString() + '\u2103',
+                  bgColor: Color(0xddba68c8),
                 ),
-                Container(
-                  decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10.0),
-                      color: Color(0xdd4dd0e1)),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: <Widget>[
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        children: <Widget>[
-                          BoxedIcon(
-                            WeatherIcons.barometer,
-                            color: Colors.white,
-                            size: 28,
-                          ),
-                          Text(
-                            'Gaz',
-                            style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: 2,
-                                fontSize: 18),
-                          ),
-                        ],
-                      ),
-                      SizedBox(height: 40),
-                      Text(
-                        // Gaz değeri 1600'ün altındaysa normal olduğunu belirt,
-                        // değilse anormal durumu belirt.
-                        gas.value < 1600 ? 'Normal' : 'Gaz kaçağı olabilir',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: Colors.white,
-                          letterSpacing: 2,
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      Text(
-                        gas.value.toString() + ' ppm',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                            color: Colors.white,
-                            letterSpacing: 2,
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold),
-                      )
-                    ],
-                  ),
+                Tile(
+                  sensorName: 'Gaz',
+                  sensorIcon: WeatherIcons.barometer,
+                  text: gas.value < 1600
+                      ? ('Normal\n' + gas.value.toString() + ' ppm')
+                      : ('Gaz kaçağı olabilir\n' +
+                          gas.value.toString() +
+                          ' ppm'),
+                  bgColor: Color(0xdd4dd0e1),
                 ),
-                Container(
-                  decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10.0),
-                      color: Color(0xddef5350)),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: <Widget>[
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        children: <Widget>[
-                          BoxedIcon(
-                            WeatherIcons.fire,
-                            color: Colors.white,
-                            size: 28,
-                          ),
-                          Text(
-                            'Alev',
-                            style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: 2,
-                                fontSize: 18),
-                          ),
-                        ],
-                      ),
-                      SizedBox(height: 40),
-                      Text(
-                        // Alev değeri 1000'in altındaysa anormal durumu belirt,
-                        // değilse normal durumu belirt.
-                        flame.value < 1000 ? 'ALEV ALGILANDI' : 'Normal',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: Colors.white,
-                          letterSpacing: 2,
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
+                Tile(
+                  sensorName: 'Alev',
+                  sensorIcon: WeatherIcons.fire,
+                  text: flame.value < 1000 ? 'ALEV ALGILANDI' : 'Normal',
+                  bgColor: Color(0xddef5350),
                 ),
-                Container(
-                  decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10.0),
-                      color: Color(0xdd009688)),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: <Widget>[
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        children: <Widget>[
-                          BoxedIcon(
-                            WeatherIcons.humidity,
-                            color: Colors.white,
-                            size: 28,
-                          ),
-                          Text(
-                            'Nem',
-                            style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: 2,
-                                fontSize: 18),
-                          ),
-                        ],
-                      ),
-                      SizedBox(height: 40),
-                      Text(
-                        humidity.value.toString() + '%',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: Colors.white,
-                          letterSpacing: 2,
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                )
+                Tile(
+                  sensorName: 'Nem',
+                  sensorIcon: WeatherIcons.humidity,
+                  text: humidity.value.toString() + '%',
+                  bgColor: Color(0xdd009688),
+                ),
               ],
             )),
+      ),
+    );
+  }
+}
+
+class Tile extends StatelessWidget {
+  const Tile({
+    Key key,
+    @required this.sensorName,
+    @required this.sensorIcon,
+    @required this.text,
+    @required this.bgColor,
+  }) : super(key: key);
+
+  final String sensorName;
+  final String text;
+  final IconData sensorIcon;
+  final Color bgColor;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(10.0), color: bgColor),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: <Widget>[
+          Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: <Widget>[
+              BoxedIcon(
+                sensorIcon,
+                color: Colors.white,
+                size: 28,
+              ),
+              Text(
+                sensorName,
+                style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 2,
+                    fontSize: 18),
+              ),
+            ],
+          ),
+          SizedBox(height: 40),
+          Text(
+            text,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: Colors.white,
+              letterSpacing: 2,
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
       ),
     );
   }

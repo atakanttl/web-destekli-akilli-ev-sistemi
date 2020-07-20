@@ -157,25 +157,14 @@ class _TasksPageState extends State<TasksPage> {
                 child: Column(
                   children: <Widget>[
                     ListTile(
-                      leading: Icon(
-                        Icons.lightbulb_outline,
-                        color: Color(0xff000000),
-                        size: 28,
-                      ),
+                      leading: CustomIcon(iconName: Icons.lightbulb_outline),
                       title: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: <Widget>[
-                          Text(
-                            // Işık switch'i true ise açık, false ise kapalı bilgisi ver
-                            lightSwitch.value == true
+                          CustomText(
+                            text: lightSwitch.value == true
                                 ? 'Işık açık'
                                 : 'Işık kapalı',
-                            style: TextStyle(
-                              color: Color(0xff000000),
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 2,
-                              fontSize: 16,
-                            ),
                           ),
                           Container(
                             height: 30,
@@ -237,11 +226,7 @@ class _TasksPageState extends State<TasksPage> {
                       ),
                     ),
                     ListTile(
-                      leading: Icon(
-                        Icons.brightness_6,
-                        color: Color(0xff000000),
-                        size: 28,
-                      ),
+                      leading: CustomIcon(iconName: Icons.brightness_6),
                       title: Slider(
                         // Slider double değerler aldığı için önce ışık parlaklığını çeviriyoruz
                         value: lightBrightness.value.toDouble(),
@@ -266,20 +251,11 @@ class _TasksPageState extends State<TasksPage> {
                 color: Color(0xffb0bec5),
                 margin: EdgeInsets.symmetric(vertical: 8.0, horizontal: 10.0),
                 child: ListTile(
-                  leading:
-                      Icon(Icons.power, color: Color(0xff000000), size: 28),
-                  title: Text(
-                    // Akıllı priz değeri true ise çalışıyor, false ise kapalı bilgisi yazdır.
-                    plugSwitch.value == true
-                        ? 'Akıllı Priz çalışıyor'
-                        : 'Akıllı Priz kapalı',
-                    style: TextStyle(
-                      color: Color(0xff000000),
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 2,
-                      fontSize: 16,
-                    ),
-                  ),
+                  leading: CustomIcon(iconName: Icons.power),
+                  title: CustomText(
+                      text: plugSwitch.value == true
+                          ? 'Akıllı Priz çalışıyor'
+                          : 'Akıllı Priz kapalı'),
                   trailing: Switch(
                     value: plugSwitch.value,
                     onChanged: (value) {
@@ -295,21 +271,9 @@ class _TasksPageState extends State<TasksPage> {
                 color: Color(0xffb0bec5),
                 margin: EdgeInsets.symmetric(vertical: 8.0, horizontal: 10.0),
                 child: ListTile(
-                  leading: Icon(
-                    Icons.vpn_key,
-                    color: Color(0xff000000),
-                    size: 28,
-                  ),
-                  title: Text(
-                    // Kapı değeri true ise açık, false ise kapalı bilgisini yazdır.
-                    door.value == true ? 'Kapı açık' : 'Kapı kapalı',
-                    style: TextStyle(
-                      color: Color(0xff000000),
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 2,
-                      fontSize: 16,
-                    ),
-                  ),
+                  leading: CustomIcon(iconName: Icons.vpn_key),
+                  title: CustomText(
+                      text: door.value == true ? 'Kapı açık' : 'Kapı kapalı'),
                   trailing: Icon(Icons.brightness_1,
                       // İkonun rengini kapı açıksa yeşil, kapalıysa kırmızı olarak değiştir.
                       color: door.value == true
@@ -321,6 +285,43 @@ class _TasksPageState extends State<TasksPage> {
           ),
         ),
       ),
+    );
+  }
+}
+
+class CustomText extends StatelessWidget {
+  const CustomText({
+    Key key,
+    @required this.text,
+  }) : super(key: key);
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      text,
+      style: TextStyle(
+        color: Color(0xff000000),
+        fontWeight: FontWeight.bold,
+        letterSpacing: 2,
+        fontSize: 16,
+      ),
+    );
+  }
+}
+
+class CustomIcon extends StatelessWidget {
+  const CustomIcon({Key key, @required this.iconName}) : super(key: key);
+
+  final IconData iconName;
+
+  @override
+  Widget build(BuildContext context) {
+    return Icon(
+      iconName,
+      color: Color(0xff000000),
+      size: 28,
     );
   }
 }
